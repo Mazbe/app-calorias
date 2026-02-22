@@ -136,8 +136,11 @@ function App() {
     <div
       style={{
         textAlign: "center",
-        marginTop: "50px",
+        marginTop: "30px",
         fontFamily: "Arial",
+        maxWidth: "100%",
+        overflowX: "hidden",
+        padding: "10px"
       }}
     >
       <h1>Calorías de Hoy</h1>
@@ -269,8 +272,8 @@ function App() {
         </div>
 
         <BarChart
-          width={500}
-          height={300}
+          width={window.innerWidth * 0.9}
+          height={250}
           data={history}
           style={{ margin: "30px auto" }}
         >

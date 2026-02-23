@@ -12,7 +12,6 @@ import {
 /*
 ========================================
  TIMEZONE FIX ROBUSTO
- Usa hora local Bogotá
 ========================================
 */
 function getLocalDate() {
@@ -44,11 +43,11 @@ function App() {
 
   /*
   ========================================
-  Color barra
+  BAR COLOR
   ========================================
   */
   function getBarColor(entry) {
-    if (!entry.goal) return "#ccc";
+    if (!entry?.goal) return "#ccc";
 
     const lowerLimit = entry.goal * 0.95;
 
@@ -60,7 +59,7 @@ function App() {
 
   /*
   ========================================
-  Fetch por rango
+  FETCH RANGE
   ========================================
   */
   async function fetchByRange(from, to) {
@@ -76,7 +75,7 @@ function App() {
 
   /*
   ========================================
-  Presets historial
+  PRESET HISTORY
   ========================================
   */
   function loadPreset(days) {
@@ -95,7 +94,7 @@ function App() {
 
   /*
   ========================================
-  Agregar calorías
+  ADD CALORIES
   ========================================
   */
   async function addCalories(amount) {
@@ -107,7 +106,7 @@ function App() {
       .eq("date", today)
       .maybeSingle();
 
-    let newTotal;
+    let newTotal = amount;
 
     if (data) {
       newTotal = data.calories + amount;
@@ -117,8 +116,6 @@ function App() {
         .update({ calories: newTotal })
         .eq("date", today);
     } else {
-      newTotal = amount;
-
       await supabase.from("calories_history").insert([
         {
           date: today,
@@ -141,11 +138,11 @@ function App() {
 
   /*
   ========================================
-  Carga inicial
+  INITIAL LOAD
   ========================================
   */
   useEffect(() => {
-    async function fetchTodayCalories() {
+    async function init() {
       const today = getLocalDate();
 
       const { data } = await supabase
@@ -157,11 +154,14 @@ function App() {
       if (data) {
         setTotal(data.calories);
         setGoal(data.goal);
+      } else {
+        setTotal(0);
       }
+
+      loadPreset(7);
     }
 
-    fetchTodayCalories();
-    loadPreset(7);
+    init();
   }, []);
 
   const progress =
@@ -169,7 +169,7 @@ function App() {
 
   /*
   ========================================
-  Render
+  RENDER
   ========================================
   */
   return (
@@ -295,10 +295,10 @@ function App() {
           <YAxis />
           <Tooltip />
           <Bar dataKey="calories">
-            {history.map((_, index) => (
+            {history.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={getBarColor(history[index])}
+                fill={getBarColor(entry)}
               />
             ))}
           </Bar>

@@ -9,6 +9,19 @@ import {
   Cell,
 } from "recharts";
 
+/*
+========================================
+ FIX DEFINITIVO TIMEZONE
+ Usa hora local (America/Bogota)
+ Cambia si estás en otro país
+========================================
+*/
+function getLocalDate() {
+  return new Date().toLocaleDateString("en-CA", {
+    timeZone: "America/Bogota",
+  });
+}
+
 function App() {
   const [total, setTotal] = useState(0);
   const [goal, setGoal] = useState(2200);
@@ -19,41 +32,51 @@ function App() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // 🔹 Función para decidir color de cada barra
+  /*
+  ========================================
+  Color barra
+  ========================================
+  */
   function getBarColor(entry) {
     if (!entry.goal) return "#ccc";
 
     const lowerLimit = entry.goal * 0.95;
 
-    if (entry.calories > entry.goal) {
-      return "#f44336"; // rojo
-    }
+    if (entry.calories > entry.goal) return "#f44336";
+    if (entry.calories >= lowerLimit) return "#4caf50";
 
-    if (entry.calories >= lowerLimit) {
-      return "#4caf50"; // verde
-    }
-
-    return "#ff9800"; // naranja
+    return "#ff9800";
   }
 
-  // 🔹 Traer datos por rango
+  /*
+  ========================================
+  Fetch por rango
+  ========================================
+  */
   async function fetchByRange(from, to) {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("calories_history")
       .select("*")
       .gte("date", from)
       .lte("date", to)
       .order("date", { ascending: true });
 
-    if (!error) {
-      setHistory(data);
-    }
+    if (data) setHistory(data);
   }
 
-  // 🔹 Rangos rápidos
+  /*
+  ========================================
+  Presets historial
+  ========================================
+  */
   function loadPreset(days) {
-    const today = new Date();
-    const past = new Date();
+    const today = new Date(
+      new Date().toLocaleDateString("en-CA", {
+        timeZone: "America/Bogota",
+      })
+    );
+
+    const past = new Date(today);
     past.setDate(today.getDate() - days);
 
     const from = past.toISOString().split("T")[0];
@@ -63,9 +86,13 @@ function App() {
     fetchByRange(from, to);
   }
 
-  // 🔹 Agregar calorías
+  /*
+  ========================================
+  Agregar calorías
+  ========================================
+  */
   async function addCalories(amount) {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getLocalDate();
 
     const { data } = await supabase
       .from("calories_history")
@@ -85,20 +112,17 @@ function App() {
     } else {
       newTotal = amount;
 
-      await supabase
-        .from("calories_history")
-        .insert([
-          {
-            date: today,
-            calories: amount,
-            goal: goal,
-          },
-        ]);
+      await supabase.from("calories_history").insert([
+        {
+          date: today,
+          calories: amount,
+          goal: goal,
+        },
+      ]);
     }
 
     setTotal(newTotal);
 
-    // refrescar gráfico
     if (rangeType === "custom") {
       if (startDate && endDate) {
         fetchByRange(startDate, endDate);
@@ -108,10 +132,14 @@ function App() {
     }
   }
 
-  // 🔹 Cargar datos iniciales
+  /*
+  ========================================
+  Carga inicial
+  ========================================
+  */
   useEffect(() => {
     async function fetchTodayCalories() {
-      const today = new Date().toISOString().split("T")[0];
+      const today = getLocalDate();
 
       const { data } = await supabase
         .from("calories_history")
@@ -132,6 +160,11 @@ function App() {
   const progress =
     goal > 0 ? Math.min((total / goal) * 100, 100) : 0;
 
+  /*
+  ========================================
+  Render
+  ========================================
+  */
   return (
     <div
       style={{
@@ -140,7 +173,7 @@ function App() {
         fontFamily: "Arial",
         maxWidth: "100%",
         overflowX: "hidden",
-        padding: "10px"
+        padding: "10px",
       }}
     >
       <h1>Calorías de Hoy</h1>
@@ -160,8 +193,7 @@ function App() {
           style={{
             width: `${progress}%`,
             height: "100%",
-            backgroundColor:
-              progress >= 100 ? "red" : "#4caf50",
+            backgroundColor: progress >= 100 ? "red" : "#4caf50",
             transition: "width 0.3s ease",
           }}
         />
@@ -176,9 +208,7 @@ function App() {
         <input
           type="number"
           value={inputCalories}
-          onChange={(e) =>
-            setInputCalories(e.target.value)
-          }
+          onChange={(e) => setInputCalories(e.target.value)}
           placeholder="Ingrese calorías"
         />
 
@@ -204,7 +234,7 @@ function App() {
         </button>
       </div>
 
-      {/* Cambiar meta */}
+      {/* Meta */}
       <div style={{ marginTop: "20px" }}>
         <input
           type="number"
@@ -213,8 +243,7 @@ function App() {
             const newGoal = Number(e.target.value);
             setGoal(newGoal);
 
-            const today =
-              new Date().toISOString().split("T")[0];
+            const today = getLocalDate();
 
             await supabase
               .from("calories_history")
@@ -225,7 +254,7 @@ function App() {
         />
       </div>
 
-      {/* 📊 Historial */}
+      {/* Historial */}
       <div style={{ marginTop: "50px" }}>
         <h2>Historial</h2>
 
@@ -244,17 +273,13 @@ function App() {
           <input
             type="date"
             value={startDate}
-            onChange={(e) =>
-              setStartDate(e.target.value)
-            }
+            onChange={(e) => setStartDate(e.target.value)}
           />
 
           <input
             type="date"
             value={endDate}
-            onChange={(e) =>
-              setEndDate(e.target.value)
-            }
+            onChange={(e) => setEndDate(e.target.value)}
             style={{ marginLeft: "10px" }}
           />
 
@@ -289,29 +314,6 @@ function App() {
             ))}
           </Bar>
         </BarChart>
-
-        {/* Leyenda */}
-        <div style={{ marginTop: "10px" }}>
-          <span style={{ color: "#4caf50" }}>
-            ● Dentro del 5%
-          </span>
-          <span
-            style={{
-              color: "#ff9800",
-              marginLeft: "15px",
-            }}
-          >
-            ● Muy por debajo
-          </span>
-          <span
-            style={{
-              color: "#f44336",
-              marginLeft: "15px",
-            }}
-          >
-            ● Excedido
-          </span>
-        </div>
       </div>
     </div>
   );

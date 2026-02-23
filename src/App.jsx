@@ -11,15 +11,25 @@ import {
 
 /*
 ========================================
- FIX DEFINITIVO TIMEZONE
- Usa hora local (America/Bogota)
- Cambia si estás en otro país
+ TIMEZONE FIX ROBUSTO
+ Usa hora local Bogotá
 ========================================
 */
 function getLocalDate() {
-  return new Date().toLocaleDateString("en-CA", {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
+
+  const parts = formatter.formatToParts(new Date());
+
+  const year = parts.find(p => p.type === "year").value;
+  const month = parts.find(p => p.type === "month").value;
+  const day = parts.find(p => p.type === "day").value;
+
+  return `${year}-${month}-${day}`;
 }
 
 function App() {
@@ -70,17 +80,14 @@ function App() {
   ========================================
   */
   function loadPreset(days) {
-    const today = new Date(
-      new Date().toLocaleDateString("en-CA", {
-        timeZone: "America/Bogota",
-      })
-    );
+    const todayStr = getLocalDate();
+    const today = new Date(todayStr);
 
     const past = new Date(today);
     past.setDate(today.getDate() - days);
 
     const from = past.toISOString().split("T")[0];
-    const to = today.toISOString().split("T")[0];
+    const to = todayStr;
 
     setRangeType(days.toString());
     fetchByRange(from, to);
@@ -166,44 +173,34 @@ function App() {
   ========================================
   */
   return (
-    <div
-      style={{
-        textAlign: "center",
-        marginTop: "30px",
-        fontFamily: "Arial",
-        maxWidth: "100%",
-        overflowX: "hidden",
-        padding: "10px",
-      }}
-    >
+    <div style={{
+      textAlign: "center",
+      marginTop: "30px",
+      fontFamily: "Arial",
+      maxWidth: "100%",
+      overflowX: "hidden",
+      padding: "10px",
+    }}>
       <h1>Calorías de Hoy</h1>
 
-      {/* Barra progreso */}
-      <div
-        style={{
-          width: "300px",
-          height: "30px",
-          backgroundColor: "#ddd",
-          margin: "20px auto",
-          borderRadius: "20px",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${progress}%`,
-            height: "100%",
-            backgroundColor: progress >= 100 ? "red" : "#4caf50",
-            transition: "width 0.3s ease",
-          }}
-        />
+      <div style={{
+        width: "300px",
+        height: "30px",
+        backgroundColor: "#ddd",
+        margin: "20px auto",
+        borderRadius: "20px",
+        overflow: "hidden",
+      }}>
+        <div style={{
+          width: `${progress}%`,
+          height: "100%",
+          backgroundColor: progress >= 100 ? "red" : "#4caf50",
+          transition: "width 0.3s ease",
+        }} />
       </div>
 
-      <h2>
-        {total} / {goal} kcal
-      </h2>
+      <h2>{total} / {goal} kcal</h2>
 
-      {/* Input calorías */}
       <div style={{ marginTop: "20px" }}>
         <input
           type="number"
@@ -234,7 +231,6 @@ function App() {
         </button>
       </div>
 
-      {/* Meta */}
       <div style={{ marginTop: "20px" }}>
         <input
           type="number"
@@ -254,7 +250,6 @@ function App() {
         />
       </div>
 
-      {/* Historial */}
       <div style={{ marginTop: "50px" }}>
         <h2>Historial</h2>
 
@@ -262,36 +257,30 @@ function App() {
           Últimos 7 días
         </button>
 
-        <button
-          style={{ marginLeft: "10px" }}
-          onClick={() => loadPreset(30)}
-        >
+        <button style={{ marginLeft: "10px" }}
+          onClick={() => loadPreset(30)}>
           Últimos 30 días
         </button>
 
         <div style={{ marginTop: "15px" }}>
-          <input
-            type="date"
+          <input type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
           />
 
-          <input
-            type="date"
+          <input type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             style={{ marginLeft: "10px" }}
           />
 
-          <button
-            style={{ marginLeft: "10px" }}
+          <button style={{ marginLeft: "10px" }}
             onClick={() => {
               if (startDate && endDate) {
                 setRangeType("custom");
                 fetchByRange(startDate, endDate);
               }
-            }}
-          >
+            }}>
             Aplicar
           </button>
         </div>
@@ -306,10 +295,10 @@ function App() {
           <YAxis />
           <Tooltip />
           <Bar dataKey="calories">
-            {history.map((entry, index) => (
+            {history.map((_, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={getBarColor(entry)}
+                fill={getBarColor(history[index])}
               />
             ))}
           </Bar>

@@ -37,9 +37,9 @@ function getCalBarColor(entry) {
 
 function getReadBarColor(entry) {
   if (!entry?.goal) return "#555";
-  if (entry.minutes >= entry.goal) return "#ffab00";
-  if (entry.minutes >= entry.goal * 0.5) return "#ff7c00";
-  return "#cc4400";
+  if (entry.minutes >= entry.goal) return "#00e096";
+  if (entry.minutes >= entry.goal * 0.5) return "#ffab00";
+  return "#ff4d4d";
 }
 
 // ─── Tooltips ─────────────────────────────────────────────────────────────────
@@ -329,7 +329,7 @@ export default function App() {
     ? Math.round(readHistory.reduce((s, d) => s + (d.goal || readGoal), 0) / readHistory.length) : readGoal;
 
   const calColor = progress >= 100 ? "#ff4d4d" : progress >= 95 ? "#00e096" : "#ffab00";
-  const readColor = readProgress >= 100 ? "#ffab00" : readProgress >= 50 ? "#ff7c00" : "#cc4400";
+  const readColor = readProgress >= 100 ? "#00e096" : readProgress >= 95 ? "#00e096" : "#ffab00";
 
   // ─── Styles ────────────────────────────────────────────────────────────────
   const S = {
@@ -496,20 +496,20 @@ export default function App() {
       `}</style>
 
       <div
-        style={{ overflow: "hidden", width: "100%", background: "#0d0d14" }}
+        style={{ overflow: "hidden", width: "100vw", background: "#0d0d14" }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         {/* ── Slides wrapper ── */}
         <div style={{
           display: "flex",
-          width: "200%",
-          transform: `translateX(${currentPage === 0 ? "0" : "-50%"})`,
+          width: "200vw",
+          transform: `translateX(${currentPage === 0 ? "0" : "-100vw"})`,
           transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
         }}>
 
           {/* ══ Page 0: Calories ══ */}
-          <div style={{ width: "50%", minHeight: "100vh", background: "#0d0d14" }}>
+          <div style={{ width: "100vw", minHeight: "100vh", background: "#0d0d14" }}>
             <div style={pageInner}>
 
               {/* Header */}
@@ -647,7 +647,7 @@ export default function App() {
           </div>
 
           {/* ══ Page 1: Reading ══ */}
-          <div style={{ width: "50%", minHeight: "100vh", background: "#0d0d14" }}>
+          <div style={{ width: "100vw", minHeight: "100vh", background: "#0d0d14" }}>
             <div style={pageInner}>
 
               {/* Header */}
@@ -720,9 +720,9 @@ export default function App() {
                 {readHistory.length > 0 && (
                   <div style={{ display: "flex", gap: "16px", marginBottom: "12px", flexWrap: "wrap" }}>
                     {[
-                      { color: "#ffab00", label: "Meta cumplida" },
-                      { color: "#ff7c00", label: "Parcial" },
-                      { color: "#cc4400", label: "Poco" },
+                      { color: "#00e096", label: "Meta cumplida" },
+                      { color: "#ffab00", label: "Parcial" },
+                      { color: "#ff4d4d", label: "Poco" },
                       { color: "#a78bfa", label: `Promedio: ${avgMinutes} min` },
                       { color: "#4dd8ff", label: `Meta: ${avgReadGoal} min` },
                     ].map((l) => (

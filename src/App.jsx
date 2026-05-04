@@ -37,9 +37,9 @@ function getCalBarColor(entry) {
 
 function getReadBarColor(entry) {
   if (!entry?.goal) return "#555";
-  if (entry.minutes >= entry.goal) return "#00e096";
-  if (entry.minutes >= entry.goal * 0.5) return "#ffab00";
-  return "#ff4d4d";
+  if (entry.minutes >= entry.goal) return "#ffab00";
+  if (entry.minutes >= entry.goal * 0.5) return "#ff7c00";
+  return "#cc4400";
 }
 
 // ─── Tooltips ─────────────────────────────────────────────────────────────────
@@ -329,7 +329,7 @@ export default function App() {
     ? Math.round(readHistory.reduce((s, d) => s + (d.goal || readGoal), 0) / readHistory.length) : readGoal;
 
   const calColor = progress >= 100 ? "#ff4d4d" : progress >= 95 ? "#00e096" : "#ffab00";
-  const readColor = readProgress >= 100 ? "#00e096" : "#ffab00";
+  const readColor = readProgress >= 100 ? "#ffab00" : readProgress >= 50 ? "#ff7c00" : "#cc4400";
 
   // ─── Styles ────────────────────────────────────────────────────────────────
   const S = {
@@ -487,7 +487,8 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&display=swap');
         * { box-sizing: border-box; }
-        body { margin: 0; background: #0d0d14; }
+        html, body { margin: 0; overflow-x: hidden; }
+        body { background: #0d0d14; }
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
         input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.4); }
@@ -719,9 +720,9 @@ export default function App() {
                 {readHistory.length > 0 && (
                   <div style={{ display: "flex", gap: "16px", marginBottom: "12px", flexWrap: "wrap" }}>
                     {[
-                      { color: "#00e096", label: "Meta cumplida" },
-                      { color: "#ffab00", label: "Parcial" },
-                      { color: "#ff4d4d", label: "Poco" },
+                      { color: "#ffab00", label: "Meta cumplida" },
+                      { color: "#ff7c00", label: "Parcial" },
+                      { color: "#cc4400", label: "Poco" },
                       { color: "#a78bfa", label: `Promedio: ${avgMinutes} min` },
                       { color: "#4dd8ff", label: `Meta: ${avgReadGoal} min` },
                     ].map((l) => (

@@ -60,7 +60,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function App() {
   const [total, setTotal] = useState(0);
-  const [goal, setGoal] = useState(2200);
+  const [goal, setGoal] = useState(2300);
   const [inputCalories, setInputCalories] = useState("");
   const [history, setHistory] = useState([]);
   const [rangeType, setRangeType] = useState("7");
@@ -182,8 +182,20 @@ export default function App() {
         .select("*")
         .eq("date", today)
         .maybeSingle();
-      if (data) { setTotal(data.calories); setGoal(data.goal); }
-      else { setTotal(0); }
+      if (data) {
+        setTotal(data.calories);
+        setGoal(data.goal);
+      } else {
+        setTotal(0);
+        const { data: prevDay } = await supabase
+          .from("calories_history")
+          .select("goal")
+          .lt("date", today)
+          .order("date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (prevDay?.goal) setGoal(prevDay.goal);
+      }
       loadPreset(7);
     }
     init();

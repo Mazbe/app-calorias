@@ -222,12 +222,13 @@ export default function App() {
 
   // ─── Reading DB ────────────────────────────────────────────────────────────
   async function fetchReadByRange(from, to) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("reading_history")
       .select("*")
       .gte("date", from)
       .lte("date", to)
       .order("date", { ascending: true });
+    if (error) console.error("reading fetch error:", error);
     if (data) setReadHistory(data);
   }
 
@@ -243,18 +244,21 @@ export default function App() {
 
   async function addMinutes(amount) {
     const today = getLocalDate();
-    const { data } = await supabase
+    const { data, error: selErr } = await supabase
       .from("reading_history")
       .select("*")
       .eq("date", today)
       .maybeSingle();
+    if (selErr) console.error("reading select error:", selErr);
 
     let newTotal = amount;
     if (data) {
       newTotal = data.minutes + amount;
-      await supabase.from("reading_history").update({ minutes: newTotal }).eq("date", today);
+      const { error: updErr } = await supabase.from("reading_history").update({ minutes: newTotal }).eq("date", today);
+      if (updErr) console.error("reading update error:", updErr);
     } else {
-      await supabase.from("reading_history").insert([{ date: today, minutes: amount, goal: readGoal }]);
+      const { error: insErr } = await supabase.from("reading_history").insert([{ date: today, minutes: amount, goal: readGoal }]);
+      if (insErr) console.error("reading insert error:", insErr);
     }
     setReadTotal(newTotal);
     if (readRangeType === "custom" && readStartDate && readEndDate) {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
+import WorkoutPage from "./WorkoutPage";
 import {
   ComposedChart,
   Bar,
@@ -76,7 +77,7 @@ const ReadTooltip = ({ active, payload, label }) => {
 };
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
 
@@ -117,8 +118,8 @@ export default function App() {
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-      if (dx < 0 && currentPage === 0) setCurrentPage(1);
-      if (dx > 0 && currentPage === 1) setCurrentPage(0);
+      if (dx < 0 && currentPage < 2) setCurrentPage(p => p + 1);
+      if (dx > 0 && currentPage > 0) setCurrentPage(p => p - 1);
     }
     touchStartX.current = null;
     touchStartY.current = null;
@@ -525,12 +526,17 @@ export default function App() {
         {/* ── Slides wrapper ── */}
         <div style={{
           display: "flex",
-          width: "200vw",
-          transform: `translateX(${currentPage === 0 ? "0" : "-100vw"})`,
+          width: "300vw",
+          transform: `translateX(${-currentPage * 100}vw)`,
           transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
         }}>
 
-          {/* ══ Page 0: Calories ══ */}
+          {/* ══ Page 0: Workout ══ */}
+          <div style={{ width: "100vw", minHeight: "100vh", background: "#0d0d14" }}>
+            <WorkoutPage />
+          </div>
+
+          {/* ══ Page 1: Calories ══ */}
           <div style={{ width: "100vw", minHeight: "100vh", background: "#0d0d14" }}>
             <div style={pageInner}>
 
@@ -668,7 +674,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* ══ Page 1: Reading ══ */}
+          {/* ══ Page 2: Reading ══ */}
           <div style={{ width: "100vw", minHeight: "100vh", background: "#0d0d14" }}>
             <div style={pageInner}>
 
@@ -778,7 +784,7 @@ export default function App() {
           gap: "8px",
           zIndex: 100,
         }}>
-          {[0, 1].map((i) => (
+          {[0, 1, 2].map((i) => (
             <div
               key={i}
               onClick={() => setCurrentPage(i)}

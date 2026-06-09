@@ -222,6 +222,20 @@ export default function App() {
   }
 
   // ─── Reading DB ────────────────────────────────────────────────────────────
+  function fillReadGaps(from, to, data, fallbackGoal) {
+    const dataMap = {};
+    data.forEach((d) => { dataMap[d.date] = d; });
+    const result = [];
+    const cur = new Date(from + "T00:00:00");
+    const end = new Date(to + "T00:00:00");
+    while (cur <= end) {
+      const dateStr = cur.toISOString().split("T")[0];
+      result.push(dataMap[dateStr] ?? { date: dateStr, minutes: 0, goal: fallbackGoal });
+      cur.setDate(cur.getDate() + 1);
+    }
+    return result;
+  }
+
   async function fetchReadByRange(from, to) {
     const { data, error } = await supabase
       .from("reading_history")
@@ -230,7 +244,7 @@ export default function App() {
       .lte("date", to)
       .order("date", { ascending: true });
     if (error) console.error("reading fetch error:", error);
-    if (data) setReadHistory(data);
+    if (data) setReadHistory(fillReadGaps(from, to, data, readGoal));
   }
 
   function loadReadPreset(days) {
@@ -313,7 +327,9 @@ export default function App() {
           .order("date", { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (prevRead?.goal) setReadGoal(prevRead.goal);
+        const goalForToday = prevRead?.goal || 30;
+        if (prevRead?.goal) setReadGoal(goalForToday);
+        await supabase.from("reading_history").insert([{ date: today, minutes: 0, goal: goalForToday }]);
       }
       loadReadPreset(7);
     }

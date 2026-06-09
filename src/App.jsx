@@ -104,6 +104,7 @@ export default function App() {
   const [readRangeType, setReadRangeType] = useState("7");
   const [readStartDate, setReadStartDate] = useState("");
   const [readEndDate, setReadEndDate] = useState("");
+  const [readError, setReadError] = useState("");
 
   // ─── Swipe ─────────────────────────────────────────────────────────────────
   function handleTouchStart(e) {
@@ -243,22 +244,23 @@ export default function App() {
   }
 
   async function addMinutes(amount) {
+    setReadError("");
     const today = getLocalDate();
     const { data, error: selErr } = await supabase
       .from("reading_history")
       .select("*")
       .eq("date", today)
       .maybeSingle();
-    if (selErr) console.error("reading select error:", selErr);
+    if (selErr) { setReadError("Error leyendo datos: " + selErr.message); return; }
 
     let newTotal = amount;
     if (data) {
       newTotal = data.minutes + amount;
       const { error: updErr } = await supabase.from("reading_history").update({ minutes: newTotal }).eq("date", today);
-      if (updErr) console.error("reading update error:", updErr);
+      if (updErr) { setReadError("Error actualizando: " + updErr.message); return; }
     } else {
       const { error: insErr } = await supabase.from("reading_history").insert([{ date: today, minutes: amount, goal: readGoal }]);
-      if (insErr) console.error("reading insert error:", insErr);
+      if (insErr) { setReadError("Error guardando: " + insErr.message); return; }
     }
     setReadTotal(newTotal);
     if (readRangeType === "custom" && readStartDate && readEndDate) {
@@ -699,6 +701,11 @@ export default function App() {
                     + Agregar
                   </button>
                 </div>
+                {readError && (
+                  <div style={{ marginTop: "10px", color: "#ff4d4d", fontSize: "12px", letterSpacing: "0.5px" }}>
+                    {readError}
+                  </div>
+                )}
               </div>
 
               {/* Reading Goal */}
